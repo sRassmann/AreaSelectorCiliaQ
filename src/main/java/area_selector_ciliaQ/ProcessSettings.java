@@ -48,21 +48,20 @@ public class ProcessSettings {
 	// add necessary Settings and defaults here
 
 	static final String[] taskVariant = { "active image in FIJI", "all images open in FIJI", "manual file selection",
-			"use list (txt)", "pattern matching" };
+			"use list (txt)", "pattern matching (recommended)" };
 	String selectedTaskVariant = taskVariant[4];
 
-	static final String[] bioFormats = { ".tif", "raw microscopy file (e.g. OIB-file)" };
-	String selectedBioFormat = bioFormats[0];
+	static final String[] bioFormats = { ".tif", "raw microscopy file (e.g. OIB-file)" }; 
+	String selectedBioFormat = bioFormats[0]; // set to .tif as channel need to be previously split
 
-	String pattern = ".*_C1_pBIN\\.tif"; // example regex choosing a file ending with "_C1_pBIN.tif"
-
-//	boolean saveDateToFilenames = false;
-//	boolean saveParam = true;
-//	String ChosenNumberFormat = "Germany (0,00...)";	
+	String pattern = ".*_C1_pBIN\\.tif"; 	// Image with channel to search files and to be manipulated
+	String helperString = "_C2.tif";		// Image with channel used to set ROIs
+	
+	
 	boolean resultsToNewFolder = false;
 	String resultsDir = ""; // Specifies dir where output files will be saved if they are to be saved no new
 							// folder
-//	int channels = 3;
+
 
 	// --------------------- Task data
 
@@ -106,10 +105,8 @@ public class ProcessSettings {
 		// Change as necessary
 		gd.setInsets(0, 0, 0);
 		gd.addChoice("File selection method ", taskVariant, inst.selectedTaskVariant);
-		gd.setInsets(0, 0, 0);
-		gd.addChoice("Input File format ", bioFormats, inst.selectedBioFormat);
-		gd.setInsets(0, 0, 0);
-		gd.addStringField("Enter pattern for pattern Matching", inst.pattern, 16);
+		gd.addStringField("Enter pattern of file containing channel to be manipulated (regex)", inst.pattern, 16);
+		gd.addStringField("Enter pattern of file containing channel to define ROIs (non-regex)", inst.helperString, 16);
 		gd.addCheckbox("Output to new Folder", inst.resultsToNewFolder);
 
 		// show Dialog-----------------------------------------------------------------
@@ -118,8 +115,8 @@ public class ProcessSettings {
 		// read and process variables--------------------------------------------------
 
 		inst.selectedTaskVariant = gd.getNextChoice();
-		inst.selectedBioFormat = gd.getNextChoice();
 		inst.pattern = gd.getNextString();
+		inst.helperString = gd.getNextString();
 		inst.resultsToNewFolder = gd.getNextBoolean();
 
 		if(gd.wasCanceled()) throw new Exception("GD canceled by user");
@@ -271,17 +268,6 @@ public class ProcessSettings {
 		}
 		return;
 	}
-	
-//	public static void main (String args[]) {
-//		ProcessSettings p = new ProcessSettings();
-//		p.matchPattern("C:\\Users\\sebas\\Desktop\\tmp programming", ".*_C1_pBIN\\.tif");
-//		for(String s : p.names) {
-//			System.out.println(s);
-//		}
-//		for(String s : p.paths) {
-//			System.out.println(s);
-//		}
-//	}
 
 	/**
 	 * choose path of txt containing text

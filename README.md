@@ -1,26 +1,5 @@
-# ImageJPluginTemplate
-A simple template to generate ImageJ plugins for multifile processing 
+# Area Selector for CiliaQ
 
-  
-How to use this template:
+Plugin allowing for manual ROI-selection in stacks. Selected areas are kept in all slices, whereas everything outside of the selected ROIs is set to background color (black).
+The plugin features multi-file processing and regex pattern matching to search processable files.
 
-clone the repository
-update the project name and metadata (Note: ImageJ requires a underscore in the name of the .jar, thus, it is recommended to choose a name containing a underscore)
-	-package name
-	
-	-pom.xml
-		-version
-		-date
-		-owner
-		-repository URL
-		-description
-		-artifact ID (should be the name as everywhere else, needs to contain the underscore)
-		
-	-plugin.config
-	
-	-Run configuration
-
-test the project and see if the template compiles and runs with changed settings
-
-modify the Processing.doProcessing() method as desired
-	

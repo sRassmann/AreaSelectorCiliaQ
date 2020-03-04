@@ -2,6 +2,8 @@ package area_selector_ciliaQ;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.WaitForUserDialog;
+import ij.plugin.frame.RoiManager;
 
 public class Processing {
 
@@ -18,10 +20,40 @@ public class Processing {
 
 	static boolean doProcessing(String path, String name, String outputDir, ProcessSettings pS, ImageSetting iS,
 			ProgressDialog pD) {
-		ImagePlus imp = pS.openImage(path + System.getProperty("file.separator") + name);
-		pD.updateBarText("opened image"); // update progress during task as necessary
-		IJ.save(imp, outputDir + System.getProperty("file.separator") + name + "_c.tif");
-		return false;
-	}
 
+		ImagePlus c1 = IJ.openImage(path + name);
+		String modPattern = pS.pattern.substring(pS.pattern.lastIndexOf("*") + 1, pS.pattern.length());
+		String c2Name = name.replaceAll(modPattern, pS.helperString);
+		ImagePlus c2 = IJ.openImage(path + c2Name); // channel used to determine selection
+		
+		c1.show();
+		c2.show();
+		
+		IJ.run("Merge Channels...", "c1=[" + c1.getTitle() + "] c2=[" + c2.getTitle() + "] create keep ignore");
+		ImagePlus merged = IJ.getImage();
+		IJ.run(merged, "Z Project...", "projection=[Max Intensity]");
+		merged.close();
+		merged = IJ.getImage();
+		IJ.setTool("freehand");
+		IJ.setBackgroundColor(0, 0, 0);
+		RoiManager rm = new RoiManager();
+		new WaitForUserDialog("Draw ROIs around desired area and press Ctrl + T\n"
+				+ "to add selection add to ROI manager.\n" + "Confirm with OK").show();
+		rm.deselect();
+		rm.runCommand("Combine");
+		rm.reset();
+		rm.runCommand("Add");
+		rm.select(c1, 0);
+		IJ.run(c1, "Clear Outside", "stack");
+	
+		IJ.save(c1, outputDir + name.substring(0, name.lastIndexOf(".tif")) + "_ed.tif");
+		IJ.save(merged, outputDir + name.replaceAll(modPattern, "_zProjection.tif"));
+		
+		c1.close();
+		c2.close();
+		merged.close();
+		rm.close();
+
+		return true;
+	}
 }

@@ -8,7 +8,7 @@ import ij.plugin.PlugIn;
 
 public class Main implements PlugIn {
 
-	static String pluginName = "plugin Name";
+	static String pluginName = "Area Selector for CiliaQ";
 	static String pluginVersion = "v0.0.1";
 
 	ProgressDialog progressDialog;
@@ -26,7 +26,7 @@ public class Main implements PlugIn {
 		ImageSetting iS = null;
 		try {
 			pS = ProcessSettings.initByGD(pluginName, pluginVersion);
-			iS = ImageSetting.initByGD(pluginName, pluginVersion);
+//			iS = ImageSetting.initByGD(pluginName, pluginVersion);  // not used
 		} catch (Exception e) {
 			new WaitForUserDialog("GD canceled - end Plugin!").show();
 			return;
