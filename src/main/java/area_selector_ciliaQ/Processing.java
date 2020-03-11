@@ -22,8 +22,7 @@ public class Processing {
 			ProgressDialog pD) {
 
 		ImagePlus c1 = IJ.openImage(path + name);
-		String modPattern = pS.pattern.substring(pS.pattern.lastIndexOf("*") + 1, pS.pattern.length());
-		String c2Name = name.replaceAll(modPattern, pS.helperString);
+		String c2Name = name.replaceAll(pS.mainPattern, pS.helperPattern);
 		ImagePlus c2 = IJ.openImage(path + c2Name); // channel used to determine selection
 		
 		c1.show();
@@ -46,8 +45,8 @@ public class Processing {
 		rm.select(c1, 0);
 		IJ.run(c1, "Clear Outside", "stack");
 	
-		IJ.save(c1, outputDir + name.substring(0, name.lastIndexOf(".tif")) + "_ed.tif");
-		IJ.save(merged, outputDir + name.replaceAll(modPattern, "_zProjection.tif"));
+		IJ.save(c1, outputDir + name.substring(0, name.lastIndexOf(".tif")) + pS.suffixEdited + ".tif");
+		IJ.save(merged, outputDir + name.replaceAll(pS.mainPattern, "_zProjection.tif"));
 		
 		c1.close();
 		c2.close();
