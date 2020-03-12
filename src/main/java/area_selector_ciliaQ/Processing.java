@@ -45,8 +45,6 @@ public class Processing {
 		}
 		new WaitForUserDialog("Draw ROIs around desired area and press Ctrl + T\n"
 				+ "to add selection add to ROI manager.\n" + "Confirm with OK").show();
-		merged.hide();
-		zProj.hide();
 		if (rm.getCount() == 0) { // no selection made
 			c1.close();
 			c2.close();
@@ -74,7 +72,7 @@ public class Processing {
 		rm.addRoi(roisCombined);
 		rm.select(zProj, 0);
 		IJ.save(zProj, outputDir + name.replaceAll(pS.mainPattern, "_zProjection.tif"));
-
+		
 		c1.close();
 		c2.close();
 		merged.close();
