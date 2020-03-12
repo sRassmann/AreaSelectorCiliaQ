@@ -9,7 +9,7 @@ import ij.plugin.PlugIn;
 public class Main implements PlugIn {
 
 	static String pluginName = "Area Selector for CiliaQ";
-	static String pluginVersion = "v0.0.2";
+	static String pluginVersion = "v0.1.0";
 
 	ProgressDialog progressDialog;
 	boolean processingDone = false;
