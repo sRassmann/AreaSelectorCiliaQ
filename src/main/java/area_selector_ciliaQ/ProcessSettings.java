@@ -54,7 +54,7 @@ public class ProcessSettings {
 	static final String[] bioFormats = { ".tif", "raw microscopy file (e.g. OIB-file)" }; 
 	String selectedBioFormat = bioFormats[0]; // set to .tif as channel need to be previously split
 
-	String mainPattern = "_C1.tif"; 		// Image with channel to be edited
+	String mainPattern = "_C1_pBIN.tif"; 		// Image with channel to be edited
 	String helperPattern = "_C2.tif";		// Image with channel used to set ROIs	
 	String suffixEdited = "_ed";			// suffix to save edited channel
 	
@@ -266,11 +266,9 @@ public class ProcessSettings {
 		Stack<File> q = new Stack<File>();
 		for(File f : fc.getSelectedFiles()) {
 			q.push(f);
-			IJ.log("added to stack: " + f.getName() );
 		}
 		
 		patternMatchingGD();		// request User input as params for pattern matching
-		IJ.log("match pattern : " + this.posFilePattern + " - " + negFilePattern + " - " + negDirPattern);
 		File[] fid; // Files in Dir
 		while (!q.isEmpty()) {
 			fid = q.pop().listFiles();
@@ -282,7 +280,6 @@ public class ProcessSettings {
 					// add to file list if posPattern matches and negative Pattern doesn't
 					this.names.add(f.getName());
 					this.paths.add(f.getParent() + System.getProperty("file.separator"));
-					IJ.log("Added file to Process List : " + f.getName() );
 				}
 			}
 		}
@@ -386,16 +383,16 @@ public class ProcessSettings {
 
 	public void selectOutputDir() {
 		if (this.resultsToNewFolder) {
-			String path = this.paths.get(0);
-			if (path == "") {
-				path = System.getProperty("user.dir");
+			String path = System.getProperty("user.dir");
+			if (this.paths.size() != 0)  {
+				path = this.paths.get(0);
 			}
 			JFileChooser fc = new JFileChooser();
 			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			fc.setMultiSelectionEnabled(false);
 			fc.setCurrentDirectory(new File(path));
 			fc.showDialog(fc, "Select Directory for Output");
-			this.resultsDir = fc.getSelectedFile().getPath();
+			this.resultsDir = fc.getSelectedFile().getPath() + System.getProperty("file.separator");
 		}
 	}
 
@@ -498,7 +495,6 @@ public class ProcessSettings {
 				chooser.showOpenDialog(frame);
 				File[] files = chooser.getSelectedFiles();
 				for (int i = 0; i < files.length; i++) {
-//					IJ.log("" + files[i].getPath());
 					filesToOpen.add(files[i]);
 					saved = files[i];
 					dirsaved = true;
@@ -508,7 +504,6 @@ public class ProcessSettings {
 			if (eventQuelle == removeButton) {
 				int[] indices = Liste1.getSelectedIndices();
 				for (int i = indices.length - 1; i >= 0; i--) {
-//					IJ.log("remove " + indices[i]);
 					filesToOpen.remove(indices[i]);
 				}
 				updateDisplay();
