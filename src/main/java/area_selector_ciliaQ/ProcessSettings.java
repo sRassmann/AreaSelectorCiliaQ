@@ -63,6 +63,7 @@ public class ProcessSettings {
 	String negFilePattern = ""; // pattern to exclude filenames even if pos Pattern was matched
 	String negDirPattern = "";	// pattern to exclude files by parent dir
 
+	boolean importRois = false;
 	
 	boolean resultsToNewFolder = false;
 	String resultsDir = ""; // Specifies dir where output files will be saved if they are to be saved no new
@@ -101,11 +102,11 @@ public class ProcessSettings {
 		ProcessSettings inst = new ProcessSettings(); // returned instance of ImageSettingClass
 
 		final Font headingFont = new Font("Sansserif", Font.BOLD, 14);
-		final Font textFont = new Font("Sansserif", Font.PLAIN, 12);
+		final Font textFont = new Font("Sansserif", Font.PLAIN, 14);
 
 		GenericDialog gd = new GenericDialog(pluginName + " - Image Processing Settings");
 		gd.setInsets(0, 0, 0);
-		gd.addMessage(pluginName + " - Version " + pluginVersion, headingFont);
+		gd.addMessage(pluginName + " - Version " + pluginVersion + " (© 2020 Sebastian Rassmann)", headingFont);
 		gd.addMessage("Insert Processing settings", textFont);
 
 		// Change as necessary
@@ -114,6 +115,7 @@ public class ProcessSettings {
 		gd.addStringField("Enter pattern of file containing the channel for editing", inst.mainPattern);
 		gd.addStringField("Enter pattern of file containing channel to define ROIs", inst.helperPattern, 16);
 		gd.addStringField("Enter suffix for edited file", inst.suffixEdited, 16);
+		gd.addCheckbox("Use existing sets of Rois", inst.importRois);
 		gd.addCheckbox("Output to new Folder", inst.resultsToNewFolder);
 
 		// show Dialog-----------------------------------------------------------------
@@ -124,6 +126,7 @@ public class ProcessSettings {
 		inst.mainPattern = gd.getNextString();
 		inst.helperPattern = gd.getNextString();
 		inst.suffixEdited = gd.getNextString();
+		inst.importRois = gd.getNextBoolean();
 		inst.resultsToNewFolder = gd.getNextBoolean();
 
 		if(gd.wasCanceled()) throw new Exception("GD canceled by user");

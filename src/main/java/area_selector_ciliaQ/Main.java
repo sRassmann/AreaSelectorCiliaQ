@@ -9,7 +9,7 @@ import ij.plugin.PlugIn;
 public class Main implements PlugIn {
 
 	static String pluginName = "Area Selector for CiliaQ";
-	static String pluginVersion = "v0.1.0";
+	static String pluginVersion = "v0.1.1";
 
 	ProgressDialog progressDialog;
 	boolean processingDone = false;
@@ -23,10 +23,9 @@ public class Main implements PlugIn {
 	 */
 	public void run(String arg) {
 		pS = null;
-		ImageSetting iS = null;
+
 		try {
 			pS = ProcessSettings.initByGD(pluginName, pluginVersion);
-//			iS = ImageSetting.initByGD(pluginName, pluginVersion);  // not used
 		} catch (Exception e) {
 			new WaitForUserDialog("GD canceled - end Plugin!").show();
 			return;
@@ -38,7 +37,7 @@ public class Main implements PlugIn {
 
 		for (int task = 0; task < pS.getNOfTasks(); task++) {
 			progressDialog.updateBarText("in progress...");
-			Processing.doProcessing(pS.paths.get(task), pS.names.get(task), pS.getOutputDir(task), pS, iS, progressDialog);
+			Processing.doProcessing(pS.paths.get(task), pS.names.get(task), pS.getOutputDir(task), pS, progressDialog);
 			progressDialog.moveTask(task);
 		}
 		progressDialog.updateBarText("finished!");

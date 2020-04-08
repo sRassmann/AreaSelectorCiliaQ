@@ -1,5 +1,7 @@
 package area_selector_ciliaQ;
 
+import java.io.File;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
@@ -19,8 +21,7 @@ public class Processing {
 	 * @return
 	 */
 
-	static boolean doProcessing(String path, String name, String outputDir, ProcessSettings pS, ImageSetting iS,
-			ProgressDialog pD) {
+	static boolean doProcessing(String path, String name, String outputDir, ProcessSettings pS, ProgressDialog pD) {
 
 		ImagePlus c1 = IJ.openImage(path + name);
 		String c2Name = name.replaceAll(pS.mainPattern, pS.helperPattern);
@@ -43,8 +44,19 @@ public class Processing {
 		if (rm.getCount() != 0) {
 			rm.runCommand(zProj, "Show All");
 		}
-		new WaitForUserDialog("Draw ROIs around desired area and press Ctrl + T\n"
-				+ "to add selection add to ROI manager.\n" + "Confirm with OK").show();
+		
+		File roisFile = new File(path + name.replace(pS.mainPattern, "_Rois.zip"));
+		if (!pS.importRois || !roisFile.exists()) {
+			if(pS.importRois || !roisFile.exists()) {
+				IJ.showMessage("Rois for file " + name + " not found - please draw the Rois");
+			}
+			new WaitForUserDialog("Draw ROIs around desired area and press Ctrl + T\n"
+					+ "to add selection add to ROI manager.\n" + "Confirm with OK").show();
+		}
+		else {
+			rm.runCommand("Open", roisFile.getAbsolutePath());
+			merged.hide();
+		} 
 		if (rm.getCount() == 0) { // no selection made
 			c1.close();
 			c2.close();
@@ -72,7 +84,7 @@ public class Processing {
 		rm.addRoi(roisCombined);
 		rm.select(zProj, 0);
 		IJ.save(zProj, outputDir + name.replaceAll(pS.mainPattern, "_zProjection.tif"));
-		
+
 		c1.close();
 		c2.close();
 		merged.close();
