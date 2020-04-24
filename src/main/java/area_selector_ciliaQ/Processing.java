@@ -16,7 +16,6 @@ public class Processing {
 	 * @param path      path to dir of the image
 	 * @param name      name of the image - path/image should be exact path of the
 	 *                  image to be processed
-	 * @param impIn     ImagePlus to be processed - can be null if not used
 	 * @param outputDir Path to dir where the output should be saved
 	 * @return
 	 */
@@ -25,7 +24,12 @@ public class Processing {
 
 		ImagePlus c1 = IJ.openImage(path + name);
 		String c2Name = name.replaceAll(pS.mainPattern, pS.helperPattern);
-		ImagePlus c2 = IJ.openImage(path + c2Name); // channel used to determine selection
+		ImagePlus c2;
+		try{
+			c2 = IJ.openImage(path + c2Name); // channel used to determine selection
+		} catch (NullPointerException e) {
+			return false;
+		}
 
 		c1.show();
 		c2.show();

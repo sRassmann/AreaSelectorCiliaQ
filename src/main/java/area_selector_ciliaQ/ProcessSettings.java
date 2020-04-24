@@ -1,30 +1,15 @@
 package area_selector_ciliaQ;
 
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Stack;
 
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import ij.IJ;
@@ -47,15 +32,15 @@ public class ProcessSettings {
 
 	// add necessary Settings and defaults here
 
-	static final String[] taskVariant = { "active image in FIJI", "all images open in FIJI", "manual file selection",
+	static final String[] TASKVARIANTS = { "active image in FIJI", "all images open in FIJI", "manual file selection",
 			"use list (txt)", "pattern matching (recommended)" };
-	String selectedTaskVariant = taskVariant[4];
+	String selectedTaskVariant = TASKVARIANTS[2];
 
 	static final String[] bioFormats = { ".tif", "raw microscopy file (e.g. OIB-file)" }; 
 	String selectedBioFormat = bioFormats[0]; // set to .tif as channel need to be previously split
 
-	String mainPattern = "_C1_pBIN.tif"; 		// Image with channel to be edited
-	String helperPattern = "_C2.tif";		// Image with channel used to set ROIs	
+	String mainPattern = "_C2_canny3d.tif"; 		// Image with channel to be edited
+	String helperPattern = "_C4.tif";		// Image with channel used to set ROIs	
 	String suffixEdited = "_ed";			// suffix to save edited channel
 	
 	
@@ -111,8 +96,8 @@ public class ProcessSettings {
 
 		// Change as necessary
 		gd.setInsets(0, 0, 0);
-		gd.addChoice("File selection method ", taskVariant, inst.selectedTaskVariant);
-		gd.addStringField("Enter pattern of file containing the channel for editing", inst.mainPattern);
+		gd.addChoice("File selection method ", TASKVARIANTS, inst.selectedTaskVariant);
+		gd.addStringField("Enter pattern of file containing the channel for editing", inst.mainPattern, 16);
 		gd.addStringField("Enter pattern of file containing channel to define ROIs", inst.helperPattern, 16);
 		gd.addStringField("Enter suffix for edited file", inst.suffixEdited, 16);
 		gd.addCheckbox("Use existing sets of Rois", inst.importRois);
@@ -148,7 +133,7 @@ public class ProcessSettings {
 
 		}
 
-		if (this.selectedTaskVariant == taskVariant[0]) { // only one image open
+		if (this.selectedTaskVariant == TASKVARIANTS[0]) { // only one image open
 			if (WindowManager.getIDList() == null) {
 				new WaitForUserDialog("Plugin canceled - no image open in FIJI!").show();
 				throw new IOException();
@@ -157,14 +142,14 @@ public class ProcessSettings {
 				this.names.add(info.fileName); // get name
 				this.paths.add(info.directory); // get directory
 			}
-		} else if (this.selectedTaskVariant == taskVariant[1]) { // select files individually
+		} else if (this.selectedTaskVariant == TASKVARIANTS[1]) { // select files individually
 			if (WindowManager.getIDList() == null) {
 				new WaitForUserDialog("Plugin canceled - no image open in FIJI!").show();
 				throw new IOException();
 			}
 			int IDlist[] = WindowManager.getIDList();
 			if (IDlist.length == 1) {
-				selectedTaskVariant = taskVariant[0];
+				selectedTaskVariant = TASKVARIANTS[0];
 				FileInfo info = WindowManager.getCurrentImage().getOriginalFileInfo();
 				names.add(info.fileName); // get name
 				paths.add(info.directory); // get directory
@@ -175,12 +160,12 @@ public class ProcessSettings {
 					paths.add(info.directory); // get directory
 				}
 			}
-		} else if (this.selectedTaskVariant == taskVariant[2]) {
-			OpenFilesDialog od = new OpenFilesDialog();
+		} else if (this.selectedTaskVariant == TASKVARIANTS[2]) {
+			OpenFilesDialog od = new OpenFilesDialog(this);
 			od.setLocation(0, 0);
 			od.setVisible(true);
 
-			od.addWindowListener(new java.awt.event.WindowAdapter(){
+			od.addWindowListener(new java.awt.event.WindowAdapter() {
 				public void windowClosing(WindowEvent winEvt) {
 					return;
 				}
@@ -197,9 +182,9 @@ public class ProcessSettings {
 				names.add(f.getName());
 				paths.add(f.getParent() + System.getProperty("file.separator"));
 			}
-		} else if (this.selectedTaskVariant == taskVariant[3]) {
+		} else if (this.selectedTaskVariant == TASKVARIANTS[3]) {
 			readFilesFromTxt(System.getProperty("user.dir"));
-		} else if (this.selectedTaskVariant == taskVariant[4]) {
+		} else if (this.selectedTaskVariant == TASKVARIANTS[4]) {
 			matchPattern(System.getProperty("user.dir"));
 		}
 	}
@@ -333,6 +318,18 @@ public class ProcessSettings {
 
 	}
 	
+	public static void main (String args[]) throws IOException {
+		ProcessSettings p = new ProcessSettings();
+		p.posFilePattern = ".*IMCD3.canny3d\\.tif"; // pattern to be matched in Filename
+		p.negFilePattern = ""; // pattern to exclude filenames even if pos Pattern was matched
+		p.negDirPattern = "742";	// pattern to exclude files by parent dir
+		p.matchPattern("F:\\");
+		for(int i = 0; i < p.names.size(); i++) {
+			System.out.println(p.paths.get(i)+p.names.get(i) );
+		}
+		System.out.println("done!");
+	}
+	
 	/**
 	 * @param pattern Simple String pattern to be matched
 	 * @return Regex allowing all characters before and after the input Pattern
@@ -398,134 +395,4 @@ public class ProcessSettings {
 			this.resultsDir = fc.getSelectedFile().getPath() + System.getProperty("file.separator");
 		}
 	}
-
-	public class OpenFilesDialog extends javax.swing.JFrame implements ActionListener {
-		LinkedList<File> filesToOpen = new LinkedList<File>();
-		boolean done = false, dirsaved = false;
-		File saved;// = new File(getClass().getResource(".").getFile());
-		JMenuBar jMenuBar1;
-		JMenu jMenu3, jMenu5;
-		JSeparator jSeparator2;
-		JPanel bgPanel;
-		JScrollPane jScrollPane1;
-		JList Liste1;
-		JButton loadButton, removeButton, goButton;
-
-		public OpenFilesDialog() {
-			super();
-			initGUI();
-		}
-
-		private void initGUI() {
-			int prefXSize = 600, prefYSize = 400;
-			this.setMinimumSize(new java.awt.Dimension(prefXSize, prefYSize + 40));
-			this.setSize(prefXSize, prefYSize + 40);
-			this.setTitle("Multi-Task-Manager - by JN Hansen (\u00a9 2016)");
-//			this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-			// Surface
-			bgPanel = new JPanel();
-			bgPanel.setLayout(new BoxLayout(bgPanel, BoxLayout.Y_AXIS));
-			bgPanel.setVisible(true);
-			bgPanel.setPreferredSize(new java.awt.Dimension(prefXSize, prefYSize - 20));
-			{
-				jScrollPane1 = new JScrollPane();
-				jScrollPane1.setHorizontalScrollBarPolicy(30);
-				jScrollPane1.setVerticalScrollBarPolicy(20);
-				jScrollPane1.setPreferredSize(new java.awt.Dimension(prefXSize - 10, prefYSize - 60));
-				bgPanel.add(jScrollPane1);
-				{
-					Liste1 = new JList();
-					jScrollPane1.setViewportView(Liste1);
-					Liste1.setModel(new DefaultComboBoxModel(new String[] { "" }));
-				}
-				{
-					JPanel spacer = new JPanel();
-					spacer.setMaximumSize(new java.awt.Dimension(prefXSize, 10));
-					spacer.setVisible(true);
-					bgPanel.add(spacer);
-				}
-				{
-					JPanel bottom = new JPanel();
-					bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
-					bottom.setMaximumSize(new java.awt.Dimension(prefXSize, 10));
-					bottom.setVisible(true);
-					bgPanel.add(bottom);
-					int locHeight = 40;
-					int locWidth3 = prefXSize / 4 - 60;
-					{
-						loadButton = new JButton();
-						loadButton.addActionListener(this);
-						loadButton.setText("add files");
-						loadButton.setMinimumSize(new java.awt.Dimension(locWidth3, locHeight));
-						loadButton.setVisible(true);
-						loadButton.setVerticalAlignment(SwingConstants.BOTTOM);
-						bottom.add(loadButton);
-					}
-					{
-						removeButton = new JButton();
-						removeButton.addActionListener(this);
-						removeButton.setText("remove selected files");
-						removeButton.setMinimumSize(new java.awt.Dimension(locWidth3, locHeight));
-						removeButton.setVisible(true);
-						removeButton.setVerticalAlignment(SwingConstants.BOTTOM);
-						bottom.add(removeButton);
-					}
-					{
-						goButton = new JButton();
-						goButton.addActionListener(this);
-						goButton.setText("start processing");
-						goButton.setMinimumSize(new java.awt.Dimension(locWidth3, locHeight));
-						goButton.setVisible(true);
-						goButton.setVerticalAlignment(SwingConstants.BOTTOM);
-						bottom.add(goButton);
-					}
-				}
-			}
-			getContentPane().add(bgPanel);
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			Object eventQuelle = ae.getSource();
-			if (eventQuelle == loadButton) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setPreferredSize(new Dimension(600, 400));
-				if (dirsaved) {
-					chooser.setCurrentDirectory(saved);
-				}
-				chooser.setMultiSelectionEnabled(true);
-				Component frame = null;
-				chooser.showOpenDialog(frame);
-				File[] files = chooser.getSelectedFiles();
-				for (int i = 0; i < files.length; i++) {
-					filesToOpen.add(files[i]);
-					saved = files[i];
-					dirsaved = true;
-				}
-				updateDisplay();
-			}
-			if (eventQuelle == removeButton) {
-				int[] indices = Liste1.getSelectedIndices();
-				for (int i = indices.length - 1; i >= 0; i--) {
-					filesToOpen.remove(indices[i]);
-				}
-				updateDisplay();
-			}
-			if (eventQuelle == goButton) {
-				done = true;
-				dispose();
-			}
-
-		}
-
-		@SuppressWarnings("unchecked")
-		public void updateDisplay() {
-			String resultsString[] = new String[filesToOpen.size()];
-			for (int i = 0; i < filesToOpen.size(); i++) {
-				resultsString[i] = (i + 1) + ": " + filesToOpen.get(i).getName();
-			}
-			Liste1.setListData(resultsString);
-		}
-	}
-
 }
